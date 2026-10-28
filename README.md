@@ -4,13 +4,21 @@ Automation for the security-relevant steps of employee **onboarding** and
 **offboarding** - the connective tissue between the identity, endpoint and
 access tools:
 
-| # | Capability | Service / API | Default mode | Live support |
-|---|------------|---------------|--------------|--------------|
-| 1 | User lifecycle: create user, assign group, suspend/deactivate, revoke sessions | Okta Users & Groups API (`/api/v1`) | mock | **yes** - real REST calls with an SSWS token |
-| 2 | Account provisioning + revoke all OAuth tokens, sign out, suspend | Google Workspace Admin SDK Directory API | mock | **yes** - service account w/ domain-wide delegation, or a short-lived access token |
-| 3 | Vault-group assignment on hire, removal from all shared vaults on exit | 1Password SCIM bridge (+ Connect API, Events API read-only) | mock | **yes** - real REST calls against your SCIM bridge / Connect server / Events API |
-| 4 | MDM enrollment invitation email | Jamf Pro (Classic API computer invitation) | mock | code path exists (`MDM_MODE=live`) but is **untested** against a real tenant - treat as mocked |
-| 5 | Structured completion alert (user, timestamp, actions, failures) | Slack incoming webhook (Block Kit) or SMTP email | mock | **yes** - Slack webhook POST or SMTP |
+| # | Capability | Service / API | Default mode | Live mode |
+|---|------------|---------------|--------------|-----------|
+| 1 | User lifecycle: create user, assign group, suspend/deactivate, revoke sessions | Okta Users & Groups API (`/api/v1`) | mock | implemented (SSWS token) - **not yet exercised against a real org** |
+| 2 | Account provisioning + revoke all OAuth tokens, sign out, suspend | Google Workspace Admin SDK Directory API | mock | implemented (delegated service account or access token) - **not yet exercised against a real domain** |
+| 3 | Vault-group assignment on hire, removal from all shared vaults on exit | 1Password SCIM bridge (+ Connect API, Events API read-only) | mock | implemented - **not yet exercised against a real SCIM bridge** |
+| 4 | MDM enrollment invitation email | Jamf Pro (Classic API computer invitation) | mock | mocked by design; a live code path exists but is unverified |
+| 5 | Structured completion alert (user, timestamp, actions, failures) | Slack incoming webhook (Block Kit) or SMTP email | mock | implemented - **not yet exercised against a real webhook** |
+
+**Honest status:** every live client is written against the vendor's documented
+REST API with the exact endpoints, auth schemes and payloads listed below, and
+the same client code is exercised by the unit tests through the mock transport.
+No vendor trial tenant was wired up for this submission, so the live paths have
+not been run end-to-end; the "Which API calls are real vs. mocked" section tells
+you how to do that one service at a time.  Design decisions, trade-offs and the
+compliance reasoning behind them are in [DESIGN.md](DESIGN.md).
 
 Every integration flips between `mock` and `live` independently with a
 `<SERVICE>_MODE` environment variable, so you can e.g. run Okta for real while
@@ -111,7 +119,7 @@ fails fast with a `configuration error` listing what is missing.
 The clients are the same in both modes; only the transport differs
 (`LiveTransport` = `requests`, `MockTransport` = in-process fixture handlers).
 
-### 1. Okta - real (free [developer org](https://developer.okta.com/signup/))
+### 1. Okta - live-capable (free [developer org](https://developer.okta.com/signup/))
 
 | Step | Call |
 |------|------|
@@ -122,7 +130,7 @@ The clients are the same in both modes; only the transport differs
 Setup: create an API token under **Security > API > Tokens**, create a group
 named `engineering`, then `OKTA_MODE=live OKTA_DOMAIN=dev-xxxx.okta.com OKTA_API_TOKEN=...`.
 
-### 2. Google Workspace - real (Admin SDK Directory API)
+### 2. Google Workspace - live-capable (Admin SDK Directory API)
 
 | Step | Call |
 |------|------|
@@ -138,7 +146,7 @@ key and set `GWS_MODE=live GWS_SERVICE_ACCOUNT_FILE=... GWS_ADMIN_EMAIL=<a super
 For a quick test with your own admin login:
 `GWS_ACCESS_TOKEN=$(gcloud auth print-access-token)`.
 
-### 3. 1Password - real (SCIM bridge; Connect + Events are read-only helpers)
+### 3. 1Password - live-capable (SCIM bridge; Connect + Events are read-only helpers)
 
 The brief says "Connect or Events API", but neither can change who has access
 to a vault: Connect manages vaults/items for a service account, and the Events
@@ -181,7 +189,7 @@ INFO mal_lifecycle.mdm: [jamf] invitation 42:
 `MDM_MODE=live` will send these calls to `JAMF_URL`, but no Jamf trial tenant
 was available to verify it, so consider it mocked.
 
-### 5. Alerts - real (Slack incoming webhook or SMTP)
+### 5. Alerts - live-capable (Slack incoming webhook or SMTP)
 
 `POST <SLACK_WEBHOOK_URL>` with a Block Kit message: header, fields for
 **user / workflow / started (UTC) / duration**, an outcome line, the full list
