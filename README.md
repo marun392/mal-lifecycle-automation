@@ -6,7 +6,7 @@ access tools:
 
 | # | Capability | Service / API | Default mode | Live mode |
 |---|------------|---------------|--------------|-----------|
-| 1 | User lifecycle: create user, assign group, suspend/deactivate, revoke sessions | Okta Users & Groups API (`/api/v1`) | mock | **verified live** (onboarding) against an Okta Integrator Free Plan org on 2026-10-28 - see [docs/VERIFICATION.md](docs/VERIFICATION.md); offboarding pending |
+| 1 | User lifecycle: create user, assign group, suspend/deactivate, revoke sessions | Okta Users & Groups API (`/api/v1`) | mock | **verified live** (onboarding and offboarding) against an Okta Integrator Free Plan org on 2026-10-28 - see [docs/VERIFICATION.md](docs/VERIFICATION.md) |
 | 2 | Account provisioning + revoke all OAuth tokens, sign out, suspend | Google Workspace Admin SDK Directory API | mock | implemented (delegated service account or access token) - **not yet exercised against a real domain** |
 | 3 | Vault-group assignment on hire, removal from all shared vaults on exit | 1Password SCIM bridge (+ Connect API, Events API read-only) | mock | implemented - **not yet exercised against a real SCIM bridge** |
 | 4 | MDM enrollment invitation email | Jamf Pro (Classic API computer invitation) | mock | mocked by design; a live code path exists but is unverified |
@@ -15,8 +15,8 @@ access tools:
 **Honest status:** every live client is written against the vendor's documented
 REST API with the exact endpoints, auth schemes and payloads listed below, and
 the same client code is exercised by the unit tests through the mock transport.
-Okta onboarding has been run against a real developer org with the evidence
-recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md).  The other live paths
+Okta onboarding and offboarding have been run against a real developer org
+with the evidence recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md).  The other live paths
 have not yet been run end-to-end; the "Which API calls are real vs. mocked"
 section tells you how to do that one service at a time, and every live run is
 added to the verification log.  Design decisions, trade-offs and the

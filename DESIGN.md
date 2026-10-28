@@ -9,7 +9,7 @@ README covers *how* to run it.
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Okta create / group / sessions / suspend / deactivate | create + group assignment **verified live** on 2026-10-28 (see `docs/VERIFICATION.md`); offboarding pending | Okta Integrator Free Plan org, SSWS token |
+| Okta create / group / sessions / suspend / deactivate | **verified live** on 2026-10-28, both onboarding and offboarding (see `docs/VERIFICATION.md`) | Okta Integrator Free Plan org, SSWS token |
 | Google Workspace create / token revocation / sign-out / suspend | implemented, **unverified live** | Needs a Workspace domain with a domain-wide-delegated service account |
 | 1Password user + group membership (SCIM), vault lookup (Connect), audit (Events) | implemented, **unverified live** | Needs 1Password Business with the SCIM bridge deployed |
 | Jamf Pro enrollment invitation | **mocked by design** | Live path exists but has never talked to a Jamf tenant |
@@ -213,7 +213,8 @@ Three realities of an AI-native company shaped the design:
   and the demo on Python 3.11, 3.12 and 3.13.
 * The demo was run end-to-end and the logged payloads were read by hand
   against the vendor documentation.
-* Okta onboarding was run against a real Integrator Free Plan org; the
+* Okta onboarding and offboarding were run against a real Integrator Free
+  Plan org; the
   command, vendor-side identifiers and console screenshots are in
   `docs/VERIFICATION.md`.  Each further live run is appended there.
 * The remaining live paths (Okta offboarding, Slack, Google, 1Password) are
@@ -223,7 +224,7 @@ Three realities of an AI-native company shaped the design:
 
 In rough priority order:
 
-1. **Finish verifying live paths**: Okta offboarding and a Slack webhook,
+1. **Finish verifying live paths**: a Slack webhook,
    then Google and 1Password trials, updating `docs/VERIFICATION.md` each
    time.
 2. **Retries and rate limits.**  Okta returns 429 with `X-Rate-Limit-Reset`;

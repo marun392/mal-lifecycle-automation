@@ -50,16 +50,43 @@ Observed behaviour worth noting:
 * Group names are matched case-insensitively, so `--group engineering`
   resolved the console-created `Engineering` group.
 
-### Offboarding: pending
+### 2026-10-28 - offboarding: verified
 
-To be recorded after running:
+Command:
 
 ```
 python -m mal_lifecycle --json offboard-okta.json offboard --email marun392+testhire@gmail.com
 ```
 
-Expected: `okta.lookup_user`, `okta.clear_sessions` and `okta.suspend` return
-OK and the console status changes to *Suspended*.
+Result:
+
+| Step | Status | Vendor-side detail |
+|------|--------|--------------------|
+| `okta.lookup_user` | OK | `GET /api/v1/users/marun392+testhire@gmail.com` returned id `00u198fcrxrNHOygS698`, status `ACTIVE` |
+| `okta.clear_sessions` | OK | `DELETE /api/v1/users/{id}/sessions` returned 204 |
+| `okta.suspend` | OK | `POST /api/v1/users/{id}/lifecycle/suspend` returned 200; user is now `SUSPENDED` |
+| `google_workspace.revoke_oauth_tokens`, `sign_out`, `suspend` | FAIL | mock directory returned 404 `Resource Not Found: userKey` (see note) |
+| `1password.lookup_user` | FAIL | mock SCIM bridge has no user with that `userName` (see note) |
+| `1password.remove_from_shared_vaults`, `1password.suspend` | SKIPPED | dependent on the failed lookup |
+| `alert.send_summary` | OK | mock Slack webhook accepted the payload listing all four failures |
+
+Run time 2.04 s; exit code 1.
+
+Evidence:
+
+* [`2026-10-28-okta-offboard-terminal.png`](evidence/2026-10-28-okta-offboard-terminal.png)
+  - terminal output of the run.
+
+Note on the simulated failures: the mock Google and 1Password tenants are
+in-memory and only persist for one process.  The test hire's mock accounts
+were created in the earlier onboarding *process* and no longer existed when
+this offboarding process started, so the mocks correctly answered 404.  The
+run is still the intended demonstration of the fault-isolation design
+(DESIGN.md section 2.3): the live Okta revocation completed, dependent steps
+were skipped rather than attempted blindly, the alert was still sent with
+every failure listed, and the exit code signalled partial completion.  A
+fully green offboarding run against the mocks uses a seeded user, e.g.
+`offboard --email bob.departing@example.com`.
 
 ## Google Workspace
 
