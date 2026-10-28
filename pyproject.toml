@@ -1,0 +1,38 @@
+[project]
+name = "mal-lifecycle-automation"
+version = "0.1.0"
+description = "Security-relevant employee onboarding/offboarding automation across Okta, Google Workspace, 1Password, Jamf and Slack/email."
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = [
+  "requests>=2.32",
+  "python-dotenv>=1.0",
+  "google-auth>=2.30",
+]
+
+[project.scripts]
+mal-lifecycle = "mal_lifecycle.cli:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mal_lifecycle*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
+ignore = ["RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+log_level = "WARNING"
