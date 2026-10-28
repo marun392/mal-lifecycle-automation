@@ -10,13 +10,13 @@ access tools:
 | 2 | Account provisioning + revoke all OAuth tokens, sign out, suspend | Google Workspace Admin SDK Directory API | mock | implemented (delegated service account or access token) - **not yet exercised against a real domain** |
 | 3 | Vault-group assignment on hire, removal from all shared vaults on exit | 1Password SCIM bridge (+ Connect API, Events API read-only) | mock | implemented - **not yet exercised against a real SCIM bridge** |
 | 4 | MDM enrollment invitation email | Jamf Pro (Classic API computer invitation) | mock | mocked by design; a live code path exists but is unverified |
-| 5 | Structured completion alert (user, timestamp, actions, failures) | Slack incoming webhook (Block Kit) or SMTP email | mock | implemented - **not yet exercised against a real webhook** |
+| 5 | Structured completion alert (user, timestamp, actions, failures) | Slack incoming webhook (Block Kit) or SMTP email | mock | Slack **verified live** on 2026-10-28 - see [docs/VERIFICATION.md](docs/VERIFICATION.md); SMTP email not yet exercised |
 
 **Honest status:** every live client is written against the vendor's documented
 REST API with the exact endpoints, auth schemes and payloads listed below, and
 the same client code is exercised by the unit tests through the mock transport.
-Okta onboarding and offboarding have been run against a real developer org
-with the evidence recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md).  The other live paths
+Okta onboarding and offboarding, and the Slack alert, have been run against
+real tenants with the evidence recorded in [docs/VERIFICATION.md](docs/VERIFICATION.md).  The other live paths
 have not yet been run end-to-end; the "Which API calls are real vs. mocked"
 section tells you how to do that one service at a time, and every live run is
 added to the verification log.  Design decisions, trade-offs and the
@@ -191,7 +191,7 @@ INFO mal_lifecycle.mdm: [jamf] invitation 42:
 `MDM_MODE=live` will send these calls to `JAMF_URL`, but no Jamf trial tenant
 was available to verify it, so consider it mocked.
 
-### 5. Alerts - live-capable (Slack incoming webhook or SMTP)
+### 5. Alerts - Slack verified live (SMTP email live-capable)
 
 `POST <SLACK_WEBHOOK_URL>` with a Block Kit message: header, fields for
 **user / workflow / started (UTC) / duration**, an outcome line, the full list

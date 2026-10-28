@@ -102,4 +102,51 @@ Mocked by design; no live run planned for this submission.
 
 ## Slack / email alerts
 
-Not yet run against a live webhook.
+**Tenant:** a free Slack workspace (`Mal-Lifecycle Automation`) with a Slack
+app named `Lifecycle Automation` and one incoming webhook authorised for
+`#all-mal-lifecycle-automation`.  Configuration: `ALERT_MODE=live`,
+`ALERT_CHANNEL=slack`, `SLACK_WEBHOOK_URL=<webhook>`.  Okta was also live
+for this run; Google, 1Password and MDM stayed in mock mode.
+
+### 2026-10-28 - Slack webhook alert: verified
+
+Command:
+
+```
+python -m mal_lifecycle --json offboard-slack.json offboard --email bob.departing@example.com
+```
+
+`bob.departing@example.com` is a user seeded in the mock tenants only, so this
+run deliberately produces a mixed result: the live Okta lookup fails with a
+real `404 E0000007`, the mock Google and 1Password steps succeed, and the
+alert has both successes and a failure to render.
+
+Result:
+
+| Step | Status | Detail |
+|------|--------|--------|
+| `okta.lookup_user` | FAIL (live) | `GET /api/v1/users/bob.departing@example.com` on the real org returned HTTP 404, `E0000007 Not found` |
+| `okta.clear_sessions`, `okta.suspend` | SKIPPED | dependent on the failed lookup |
+| Google Workspace and 1Password steps | OK (mock) | as in the demo |
+| `alert.send_summary` | OK (live) | `POST` to the Slack webhook returned 200 `ok`; ~0.5 s round-trip versus the mock's ~1 ms |
+
+Run time 1.65 s; exit code 1.
+
+Evidence:
+
+* [`2026-10-28-slack-alert-terminal.png`](evidence/2026-10-28-slack-alert-terminal.png)
+  - terminal output; note the absence of a `[slack-mock]` transport line and
+  the 0.5 s gap before "slack alert delivered".
+* [`2026-10-28-slack-alert-channel.webp`](evidence/2026-10-28-slack-alert-channel.webp)
+  - the Block Kit message as rendered in `#all-mal-lifecycle-automation`:
+  header, user / workflow / started / duration fields, outcome line, every
+  action with a tick, cross or skip marker, a separate *Failures* section
+  quoting the Okta error body, and the footer `modes: okta=live, ...,
+  alerts=live`.
+
+Observed behaviour worth noting:
+
+* The failure path is the one an on-call engineer actually sees: the Okta
+  error body is quoted verbatim, and the dependent skips are labelled with
+  the step that caused them.
+* The webhook URL never appears in logs or output; it lives only in `.env`.

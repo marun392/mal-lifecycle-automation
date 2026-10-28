@@ -13,7 +13,7 @@ README covers *how* to run it.
 | Google Workspace create / token revocation / sign-out / suspend | implemented, **unverified live** | Needs a Workspace domain with a domain-wide-delegated service account |
 | 1Password user + group membership (SCIM), vault lookup (Connect), audit (Events) | implemented, **unverified live** | Needs 1Password Business with the SCIM bridge deployed |
 | Jamf Pro enrollment invitation | **mocked by design** | Live path exists but has never talked to a Jamf tenant |
-| Slack / email alert | implemented, **unverified live** | A webhook URL is enough to verify |
+| Slack / email alert | Slack webhook **verified live** on 2026-10-28 (see `docs/VERIFICATION.md`); SMTP unverified | |
 | Unit tests, lint, CI | real | 47 tests, ruff clean, GitHub Actions on 3 Python versions |
 
 Not built, on purpose (see section 5): retries and rate-limit handling,
@@ -214,19 +214,18 @@ Three realities of an AI-native company shaped the design:
 * The demo was run end-to-end and the logged payloads were read by hand
   against the vendor documentation.
 * Okta onboarding and offboarding were run against a real Integrator Free
-  Plan org; the
+  Plan org, and the alert was delivered to a real Slack webhook; the
   command, vendor-side identifiers and console screenshots are in
   `docs/VERIFICATION.md`.  Each further live run is appended there.
-* The remaining live paths (Okta offboarding, Slack, Google, 1Password) are
-  flipped to live one service at a time, following the README.
+* The remaining live paths (Google, 1Password, SMTP) are flipped to live one
+  service at a time, following the README.
 
 ## 5. Known limitations and what I would do next
 
 In rough priority order:
 
-1. **Finish verifying live paths**: a Slack webhook,
-   then Google and 1Password trials, updating `docs/VERIFICATION.md` each
-   time.
+1. **Finish verifying live paths**: Google and 1Password trials, updating
+   `docs/VERIFICATION.md` each time.
 2. **Retries and rate limits.**  Okta returns 429 with `X-Rate-Limit-Reset`;
    Google returns 403/429 with a retry hint.  Add bounded exponential backoff
    in `LiveTransport` and treat the remaining failures as today.
