@@ -44,3 +44,21 @@ def test_onboard_custom_group(tmp_path, capsys):
     )
     assert code == 0
     assert "added to 'finance'" in capsys.readouterr().out
+
+
+def test_global_options_accepted_after_subcommand(tmp_path):
+    out = tmp_path / "after.json"
+    code = main(
+        [
+            "offboard",
+            "--email",
+            "bob.departing@example.com",
+            "--mock",
+            "--env-file",
+            str(tmp_path / "x.env"),
+            "--json",
+            str(out),
+        ]
+    )
+    assert code == 0
+    assert json.loads(out.read_text())[0]["workflow"] == "offboarding"

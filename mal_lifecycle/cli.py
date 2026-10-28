@@ -19,18 +19,42 @@ from .models import Employee, StepStatus, WorkflowResult
 STATUS_MARK = {StepStatus.SUCCESS: "OK  ", StepStatus.FAILED: "FAIL", StepStatus.SKIPPED: "SKIP"}
 
 
+def _add_global_options(parser: argparse.ArgumentParser, *, suppress: bool = False) -> None:
+    """Options accepted both before and after the sub-command name."""
+    default = argparse.SUPPRESS if suppress else None
+    parser.add_argument(
+        "--mock",
+        action="store_true",
+        default=argparse.SUPPRESS if suppress else False,
+        help="force every integration into mock mode",
+    )
+    parser.add_argument(
+        "--env-file",
+        default=argparse.SUPPRESS if suppress else ".env",
+        help="dotenv file to load (default: .env)",
+    )
+    parser.add_argument(
+        "--json",
+        metavar="PATH",
+        default=default,
+        help="write the structured run result to this file ('-' for stdout)",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        default=argparse.SUPPRESS if suppress else False,
+        help="debug logging",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mal_lifecycle",
         description="Automate the security-relevant steps of employee onboarding and offboarding "
         "across Okta, Google Workspace, 1Password, Jamf and Slack/email.",
     )
-    parser.add_argument("--mock", action="store_true", help="force every integration into mock mode")
-    parser.add_argument("--env-file", default=".env", help="dotenv file to load (default: .env)")
-    parser.add_argument(
-        "--json", metavar="PATH", help="write the structured run result to this file ('-' for stdout)"
-    )
-    parser.add_argument("-v", "--verbose", action="store_true", help="debug logging")
+    _add_global_options(parser)
     sub = parser.add_subparsers(dest="command", required=True)
 
     on = sub.add_parser("onboard", help="provision a new hire")
@@ -40,11 +64,14 @@ def build_parser() -> argparse.ArgumentParser:
     on.add_argument("--group", default="engineering", help="Okta group and 1Password group name")
     on.add_argument("--title")
     on.add_argument("--department")
+    _add_global_options(on, suppress=True)
 
     off = sub.add_parser("offboard", help="revoke access for a departing employee")
     off.add_argument("--email", required=True, help="corporate email / login")
+    _add_global_options(off, suppress=True)
 
-    sub.add_parser("demo", help="run onboarding + offboarding end-to-end against the mocks")
+    demo = sub.add_parser("demo", help="run onboarding + offboarding end-to-end against the mocks")
+    _add_global_options(demo, suppress=True)
     return parser
 
 
