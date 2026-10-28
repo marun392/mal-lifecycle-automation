@@ -9,7 +9,7 @@ README covers *how* to run it.
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Okta create / group / sessions / suspend / deactivate | implemented against the documented API, **unverified live** | Needs a free developer org and an SSWS token to verify; ~15 minutes |
+| Okta create / group / sessions / suspend / deactivate | create + group assignment **verified live** on 2026-10-28 (see `docs/VERIFICATION.md`); offboarding pending | Okta Integrator Free Plan org, SSWS token |
 | Google Workspace create / token revocation / sign-out / suspend | implemented, **unverified live** | Needs a Workspace domain with a domain-wide-delegated service account |
 | 1Password user + group membership (SCIM), vault lookup (Connect), audit (Events) | implemented, **unverified live** | Needs 1Password Business with the SCIM bridge deployed |
 | Jamf Pro enrollment invitation | **mocked by design** | Live path exists but has never talked to a Jamf tenant |
@@ -213,16 +213,19 @@ Three realities of an AI-native company shaped the design:
   and the demo on Python 3.11, 3.12 and 3.13.
 * The demo was run end-to-end and the logged payloads were read by hand
   against the vendor documentation.
-* No live tenant was used.  The next verification step is the one described
-  in the README: a free Okta developer org and a Slack webhook, flipped to
-  live one at a time.
+* Okta onboarding was run against a real Integrator Free Plan org; the
+  command, vendor-side identifiers and console screenshots are in
+  `docs/VERIFICATION.md`.  Each further live run is appended there.
+* The remaining live paths (Okta offboarding, Slack, Google, 1Password) are
+  flipped to live one service at a time, following the README.
 
 ## 5. Known limitations and what I would do next
 
 In rough priority order:
 
-1. **Verify live paths** against an Okta developer org and a Slack webhook,
-   then Google and 1Password trials, and update the status table.
+1. **Finish verifying live paths**: Okta offboarding and a Slack webhook,
+   then Google and 1Password trials, updating `docs/VERIFICATION.md` each
+   time.
 2. **Retries and rate limits.**  Okta returns 429 with `X-Rate-Limit-Reset`;
    Google returns 403/429 with a retry hint.  Add bounded exponential backoff
    in `LiveTransport` and treat the remaining failures as today.
